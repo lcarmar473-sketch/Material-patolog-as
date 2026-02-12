@@ -1,390 +1,244 @@
-import React, { useState } from 'react';
-import { 
-  Activity, 
-  Stethoscope, 
-  Flame, 
-  Droplets, 
-  Bone, 
-  Brain, 
-  Car,
-  ChevronRight, 
-  AlertTriangle, 
-  CheckCircle2, 
-  XCircle, 
-  RotateCcw, 
-  ShieldAlert, 
-  Info,
-  Code,
-  Copy
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Técnico de Emergencias</title>
+    <!-- Tailwind CSS para el diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React y Babel para ejecutar JSX en el navegador -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .animate-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
 
-const App = () => {
-  const [activeTab, setActiveTab] = useState('theory');
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [showEmbedInfo, setShowEmbedInfo] = useState(false);
-  const [quizState, setQuizState] = useState({
-    currentQuestion: 0,
-    score: 0,
-    showResults: false,
-    feedback: null
-  });
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-  const categories = [
-    {
-      id: 'trauma_grave',
-      title: 'Traumas Graves',
-      icon: <ShieldAlert className="w-6 h-6" />,
-      color: 'bg-red-700',
-      content: [
-        { name: 'TCE (Craneoencefálico)', desc: 'Golpe en la cabeza con posible pérdida de conciencia, vómitos en escopeta o pupilas desiguales.', action: 'Mantener el eje cabeza-cuello-tronco. Vigilar nivel de consciencia continuamente.' },
-        { name: 'Trauma Abdominal', desc: 'Golpe fuerte en abdomen con dolor intenso, rigidez (vientre en tabla) o signos de shock.', action: 'Colocar en posición de decúbito supino con piernas flexionadas para relajar la musculatura.' },
-        { name: 'Fractura de Pelvis', desc: 'Suele ocurrir en atropellos o caídas de gran altura. Dolor agudo en la cadera e imposibilidad de mover las piernas.', action: 'Inmovilización absoluta. No intentar mover las piernas ni rotar al paciente.' }
-      ]
-    },
-    {
-      id: 'trafico',
-      title: 'Accidentes de Tráfico',
-      icon: <Car className="w-6 h-6" />,
-      color: 'bg-slate-700',
-      content: [
-        { name: 'Latigazo Cervical', desc: 'Lesión por hiperextensión e hiperflexión brusca del cuello.', action: 'Mantener alineación manual de la cabeza. No mover si no hay riesgo inminente.' },
-        { name: 'Trauma Torácico', desc: 'Golpe contra el volante o cinturón. Puede causar fracturas costales o neumotórax.', action: 'Controlar la respiración. Colocar en posición semisentado si está consciente.' },
-        { name: 'Víctima Atrapada', desc: 'Situación donde el ocupante no puede salir por deformidad del vehículo.', action: 'Aplicar protocolo PAS. Estabilizar el vehículo y esperar a bomberos.' }
-      ]
-    },
-    {
-      id: 'trauma_comun',
-      title: 'Traumas Comunes',
-      icon: <Bone className="w-6 h-6" />,
-      color: 'bg-blue-500',
-      content: [
-        { name: 'Fracturas', desc: 'Rotura parcial o total de un hueso. Pueden ser abiertas (hueso visible) o cerradas.', action: 'Inmovilizar sin reducir y vigilar pulso distal.' },
-        { name: 'Esguinces', desc: 'Distensión o rotura de ligamentos en una articulación.', action: 'Protocolo RICE: Reposo, Hielo, Compresión, Elevación.' },
-        { name: 'Luxaciones', desc: 'Desplazamiento de un hueso fuera de su articulación.', action: 'Inmovilizar en la posición hallada. Nunca intentar colocar el hueso.' }
-      ]
-    },
-    {
-      id: 'patologias',
-      title: 'Patologías Médicas',
-      icon: <Brain className="w-6 h-6" />,
-      color: 'bg-red-500',
-      content: [
-        { name: 'Ictus (AVC)', desc: 'Interrupción del flujo sanguíneo al cerebro. Síntomas: parálisis facial, habla confusa.', action: 'Identificación rápida (Escala FAST) y traslado urgente.' },
-        { name: 'IAM (Infarto)', desc: 'Obstrucción coronaria. Dolor opresivo en el pecho irradiado a brazo o mandíbula.', action: 'Reposo absoluto y aviso inmediato al 112.' }
-      ]
-    }
-  ];
+        // Componente de Iconos adaptado para CDN
+        const Icon = ({ name, className = "w-6 h-6" }) => {
+            useEffect(() => {
+                lucide.createIcons();
+            }, [name]);
+            return <i data-lucide={name} className={className}></i>;
+        };
 
-  const quizQuestions = [
-    {
-      scenario: "Tras una caída de 3 metros, el paciente no puede mover las piernas y refiere dolor insoportable en la zona de la cadera.",
-      options: ["Luxación de fémur", "Fractura de pelvis", "Esguince lumbar"],
-      correct: 1,
-      explanation: "El mecanismo de caída y la imposibilidad de movimiento en miembros inferiores sugieren fractura de pelvis."
-    },
-    {
-      scenario: "Un conductor golpea su cabeza contra el parabrisas. Está confundido y ha vomitado de forma violenta una vez.",
-      options: ["Ataque de ansiedad", "Migraña por estrés", "Traumatismo Craneoencefálico (TCE)"],
-      correct: 2,
-      explanation: "Los vómitos en 'escopeta' y la confusión tras un impacto craneal son signos de alarma de TCE grave."
-    },
-    {
-      scenario: "Tras un impacto en el taller, un operario presenta el abdomen muy duro al tacto ('vientre en tabla') y palidez extrema.",
-      options: ["Indigestión", "Traumatismo abdominal interno", "Rotura de fibras costales"],
-      correct: 1,
-      explanation: "La rigidez abdominal tras un trauma indica irritación peritoneal, posiblemente por hemorragia interna."
-    },
-    {
-      scenario: "Tras un alcance trasero en coche, el conductor refiere dolor intenso en la base del cráneo y mareos.",
-      options: ["Ictus súbito", "Latigazo cervical", "Luxación de hombro"],
-      correct: 1,
-      explanation: "El mecanismo de aceleración-desaceleración es la causa principal del latigazo cervical."
-    },
-    {
-      scenario: "Un paciente presenta parálisis facial en el lado izquierdo y no puede repetir una frase sencilla.",
-      options: ["Infarto agudo", "Ictus", "Crisis de ansiedad"],
-      correct: 1,
-      explanation: "Son signos neurológicos clásicos de un Accidente Cerebrovascular (Ictus)."
-    },
-    {
-      scenario: "Un trabajador sufre un corte profundo; la sangre sale a borbotones y es de color rojo brillante.",
-      options: ["Hemorragia venosa", "Hemorragia arterial", "Hemorragia capilar"],
-      correct: 1,
-      explanation: "El flujo pulsátil y color vivo indican hemorragia arterial."
-    },
-    {
-      scenario: "Un deportista sufre una torcedura de tobillo. Hay inflamación pero puede mover ligeramente el pie.",
-      options: ["Fractura abierta", "Esguince", "Luxación"],
-      correct: 1,
-      explanation: "La distensión de ligamentos sin pérdida de contacto articular suele ser un esguince."
-    },
-    {
-      scenario: "Dolor opresivo en el centro del pecho que se desplaza hacia la mandíbula y brazo izquierdo.",
-      options: ["Ictus", "Infarto de miocardio", "Trauma torácico"],
-      correct: 1,
-      explanation: "Es el cuadro clínico típico del infarto agudo de miocardio."
-    },
-    {
-      scenario: "Quemadura en el brazo que presenta ampollas llenas de líquido y mucho dolor.",
-      options: ["1er Grado", "2do Grado", "3er Grado"],
-      correct: 1,
-      explanation: "La presencia de ampollas (flictenas) define a las quemaduras de segundo grado."
-    },
-    {
-      scenario: "Un motorista accidentado presenta una pierna más corta que la otra y rotada hacia fuera tras un impacto lateral.",
-      options: ["Fractura de pelvis / fémur", "Esguince de rodilla", "Calambre muscular"],
-      correct: 0,
-      explanation: "El acortamiento y rotación del miembro es un signo claro de fractura ósea grave en la zona proximal."
-    }
-  ];
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('theory');
+            const [selectedCategory, setSelectedCategory] = useState(null);
+            const [quizState, setQuizState] = useState({
+                currentQuestion: 0,
+                score: 0,
+                showResults: false,
+                feedback: null
+            });
 
-  const handleAnswer = (index) => {
-    const isCorrect = index === quizQuestions[quizState.currentQuestion].correct;
-    setQuizState({
-      ...quizState,
-      feedback: isCorrect ? 'correct' : 'incorrect'
-    });
+            const categories = [
+                {
+                    id: 'trauma_grave',
+                    title: 'Traumas Graves',
+                    icon: "shield-alert",
+                    color: 'bg-red-700',
+                    content: [
+                        { name: 'TCE (Craneoencefálico)', desc: 'Golpe en la cabeza con posible pérdida de conciencia, vómitos en escopeta o pupilas desiguales.', action: 'Mantener el eje cabeza-cuello-tronco. Vigilar nivel de consciencia continuamente.' },
+                        { name: 'Trauma Abdominal', desc: 'Golpe fuerte en abdomen con dolor intenso, rigidez (vientre en tabla) o signos de shock.', action: 'Colocar en posición de decúbito supino con piernas flexionadas para relajar la musculatura.' },
+                        { name: 'Fractura de Pelvis', desc: 'Suele ocurrir en atropellos o caídas de gran altura. Dolor agudo en la cadera e imposibilidad de mover las piernas.', action: 'Inmovilización absoluta. No intentar mover las piernas ni rotar al paciente.' }
+                    ]
+                },
+                {
+                    id: 'trafico',
+                    title: 'Accidentes de Tráfico',
+                    icon: "car",
+                    color: 'bg-slate-700',
+                    content: [
+                        { name: 'Latigazo Cervical', desc: 'Lesión por hiperextensión e hiperflexión brusca del cuello.', action: 'Mantener alineación manual de la cabeza. No mover si no hay riesgo inminente.' },
+                        { name: 'Trauma Torácico', desc: 'Golpe contra el volante o cinturón. Puede causar fracturas costales o neumotórax.', action: 'Controlar la respiración. Colocar en posición semisentado si está consciente.' },
+                        { name: 'Víctima Atrapada', desc: 'Situación donde el ocupante no puede salir por deformidad del vehículo.', action: 'Aplicar protocolo PAS. Estabilizar el vehículo y esperar a bomberos.' }
+                    ]
+                },
+                {
+                    id: 'trauma_comun',
+                    title: 'Traumas Comunes',
+                    icon: "bone",
+                    color: 'bg-blue-500',
+                    content: [
+                        { name: 'Fracturas', desc: 'Rotura parcial o total de un hueso. Pueden ser abiertas (hueso visible) o cerradas.', action: 'Inmovilizar sin reducir y vigilar pulso distal.' },
+                        { name: 'Esguinces', desc: 'Distensión o rotura de ligamentos en una articulación.', action: 'Protocolo RICE: Reposo, Hielo, Compresión, Elevación.' },
+                        { name: 'Luxaciones', desc: 'Desplazamiento de un hueso fuera de su articulación.', action: 'Inmovilizar en la posición hallada. Nunca intentar colocar el hueso.' }
+                    ]
+                },
+                {
+                    id: 'patologias',
+                    title: 'Patologías Médicas',
+                    icon: "brain",
+                    color: 'bg-red-500',
+                    content: [
+                        { name: 'Ictus (AVC)', desc: 'Interrupción del flujo sanguíneo al cerebro. Síntomas: parálisis facial, habla confusa.', action: 'Identificación rápida (Escala FAST) y traslado urgente.' },
+                        { name: 'IAM (Infarto)', desc: 'Obstrucción coronaria. Dolor opresivo en el pecho irradiado a brazo o mandíbula.', action: 'Reposo absoluto y aviso inmediato al 112.' }
+                    ]
+                }
+            ];
 
-    setTimeout(() => {
-      if (quizState.currentQuestion + 1 < quizQuestions.length) {
-        setQuizState({
-          ...quizState,
-          currentQuestion: quizState.currentQuestion + 1,
-          score: isCorrect ? quizState.score + 1 : quizState.score,
-          feedback: null
-        });
-      } else {
-        setQuizState({
-          ...quizState,
-          score: isCorrect ? quizState.score + 1 : quizState.score,
-          showResults: true,
-          feedback: null
-        });
-      }
-    }, 1500);
-  };
+            const quizQuestions = [
+                {
+                    scenario: "Tras una caída de 3 metros, el paciente no puede mover las piernas y refiere dolor insoportable en la zona de la cadera.",
+                    options: ["Luxación de fémur", "Fractura de pelvis", "Esguince lumbar"],
+                    correct: 1,
+                    explanation: "El mecanismo de caída y la imposibilidad de movimiento en miembros inferiores sugieren fractura de pelvis."
+                },
+                {
+                    scenario: "Un conductor golpea su cabeza contra el parabrisas. Está confundido y ha vomitado de forma violenta una vez.",
+                    options: ["Ataque de ansiedad", "Migraña por estrés", "Traumatismo Craneoencefálico (TCE)"],
+                    correct: 2,
+                    explanation: "Los vómitos en 'escopeta' y la confusión tras un impacto craneal son signos de alarma de TCE grave."
+                },
+                {
+                    scenario: "Un operario presenta el abdomen muy duro al tacto ('vientre en tabla') y palidez extrema tras un impacto.",
+                    options: ["Indigestión", "Traumatismo abdominal interno", "Rotura de fibras"],
+                    correct: 1,
+                    explanation: "La rigidez abdominal (vientre en tabla) es un signo clásico de hemorragia o trauma interno grave."
+                }
+            ];
 
-  const resetQuiz = () => {
-    setQuizState({
-      currentQuestion: 0,
-      score: 0,
-      showResults: false,
-      feedback: null
-    });
-  };
+            const handleAnswer = (index) => {
+                const isCorrect = index === quizQuestions[quizState.currentQuestion].correct;
+                setQuizState({ ...quizState, feedback: isCorrect ? 'correct' : 'incorrect' });
 
-  const copyIframeCode = () => {
-    const code = `<iframe src="TU_URL_AQUI" width="100%" height="600px" style="border:none; border-radius:12px; shadow: 0 4px 6px rgba(0,0,0,0.1);"></iframe>`;
-    document.execCommand('copy');
-    // En un entorno real se usaría navigator.clipboard, aquí simulamos la acción exitosa
-  };
+                setTimeout(() => {
+                    if (quizState.currentQuestion + 1 < quizQuestions.length) {
+                        setQuizState({
+                            ...quizState,
+                            currentQuestion: quizState.currentQuestion + 1,
+                            score: isCorrect ? quizState.score + 1 : quizState.score,
+                            feedback: null
+                        });
+                    } else {
+                        setQuizState({
+                            ...quizState,
+                            score: isCorrect ? quizState.score + 1 : quizState.score,
+                            showResults: true,
+                            feedback: null
+                        });
+                    }
+                }, 1500);
+            };
 
-  return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <header className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2 flex items-center justify-center gap-2">
-            <Activity className="text-red-600" />
-            Manual Técnico de Emergencias
-          </h1>
-          <p className="text-slate-500 italic text-sm">Identificación de Lesiones y Patologías Frecuentes • Grado Medio</p>
-        </header>
+            return (
+                <div className="min-h-screen p-4 md:p-8">
+                    <div className="max-w-5xl mx-auto">
+                        <header className="mb-8 text-center">
+                            <h1 className="text-3xl font-bold text-slate-800 mb-2 flex items-center justify-center gap-2">
+                                <Icon name="activity" className="text-red-600 w-8 h-8" />
+                                Manual Técnico de Emergencias
+                            </h1>
+                            <p className="text-slate-500 italic">Recurso Educativo para Grado Medio</p>
+                        </header>
 
-        {/* Navigation Tabs */}
-        <div className="flex mb-6 bg-white p-1 rounded-xl shadow-sm border border-slate-200">
-          <button 
-            onClick={() => setActiveTab('theory')}
-            className={`flex-1 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold ${activeTab === 'theory' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
-          >
-            <Activity size={18} /> Protocolos Teóricos
-          </button>
-          <button 
-            onClick={() => setActiveTab('quiz')}
-            className={`flex-1 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-semibold ${activeTab === 'quiz' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
-          >
-            <CheckCircle2 size={18} /> Test de Autoevaluación
-          </button>
-        </div>
-
-        {/* Theory Section */}
-        {activeTab === 'theory' && (
-          <div className="space-y-4 animate-in fade-in duration-500">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`p-5 rounded-2xl border-2 transition-all text-left flex flex-col gap-3 h-full ${selectedCategory?.id === cat.id ? 'border-indigo-500 bg-indigo-50' : 'border-transparent bg-white shadow-sm hover:shadow-md'}`}
-                >
-                  <div className={`${cat.color} text-white p-3 rounded-xl w-fit shadow-sm`}>
-                    {cat.icon}
-                  </div>
-                  <h3 className="font-bold text-sm leading-tight">{cat.title}</h3>
-                </button>
-              ))}
-            </div>
-
-            {selectedCategory ? (
-              <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 animate-in slide-in-from-bottom-4 duration-300">
-                <div className="flex items-center gap-3 mb-6 border-b pb-4">
-                  <div className={`${selectedCategory.color} text-white p-2 rounded-lg`}>{selectedCategory.icon}</div>
-                  <h2 className="text-2xl font-bold text-slate-800">{selectedCategory.title}</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedCategory.content.map((item, idx) => (
-                    <div key={idx} className="p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">
-                      <h4 className="font-bold text-indigo-900 text-base mb-1">{item.name}</h4>
-                      <p className="text-slate-600 mb-3 text-xs leading-relaxed">{item.desc}</p>
-                      <div className="flex items-start gap-2 bg-white p-3 rounded-lg border-l-4 border-emerald-500 shadow-sm">
-                        <Info className="text-emerald-600 w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <span className="text-[9px] font-black text-emerald-700 uppercase">Actuación Inmediata:</span>
-                          <p className="text-xs text-slate-700 font-medium">{item.action}</p>
+                        <div className="flex mb-6 bg-white p-1 rounded-xl shadow-sm border border-slate-200">
+                            <button 
+                                onClick={() => setActiveTab('theory')}
+                                className={`flex-1 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-bold ${activeTab === 'theory' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
+                            >
+                                <Icon name="book-open" className="w-4 h-4" /> Protocolos
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('quiz')}
+                                className={`flex-1 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-bold ${activeTab === 'quiz' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
+                            >
+                                <Icon name="check-circle" className="w-4 h-4" /> Autoevaluación
+                            </button>
                         </div>
-                      </div>
+
+                        {activeTab === 'theory' && (
+                            <div className="space-y-4 animate-in">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                    {categories.map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => setSelectedCategory(cat)}
+                                            className={`p-5 rounded-2xl border-2 transition-all text-left flex flex-col gap-3 h-full ${selectedCategory?.id === cat.id ? 'border-indigo-500 bg-indigo-50' : 'border-transparent bg-white shadow-sm hover:shadow-md'}`}
+                                        >
+                                            <div className={`${cat.color} text-white p-3 rounded-xl w-fit`}>
+                                                <Icon name={cat.icon} />
+                                            </div>
+                                            <h3 className="font-bold text-sm leading-tight">{cat.title}</h3>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {selectedCategory && (
+                                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 animate-in">
+                                        <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                            <div className={`${selectedCategory.color} p-2 rounded-lg text-white`}><Icon name={selectedCategory.icon} /></div>
+                                            {selectedCategory.title}
+                                        </h2>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {selectedCategory.content.map((item, idx) => (
+                                                <div key={idx} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                                    <h4 className="font-bold text-indigo-900 mb-1">{item.name}</h4>
+                                                    <p className="text-slate-600 text-xs mb-3">{item.desc}</p>
+                                                    <div className="bg-white p-3 rounded-lg border-l-4 border-emerald-500 flex items-start gap-2">
+                                                        <Icon name="info" className="text-emerald-600 w-4 h-4" />
+                                                        <p className="text-xs text-slate-700"><strong>Actuación:</strong> {item.action}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'quiz' && (
+                            <div className="bg-white p-6 md:p-10 rounded-3xl shadow-xl border border-slate-100 animate-in min-h-[400px]">
+                                {!quizState.showResults ? (
+                                    <div>
+                                        <div className="mb-8">
+                                            <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">Pregunta {quizState.currentQuestion + 1}</p>
+                                            <h2 className="text-xl font-bold text-slate-800 italic">"{quizQuestions[quizState.currentQuestion].scenario}"</h2>
+                                        </div>
+                                        <div className="space-y-3">
+                                            {quizQuestions[quizState.currentQuestion].options.map((option, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    disabled={quizState.feedback !== null}
+                                                    onClick={() => handleAnswer(idx)}
+                                                    className={`w-full p-4 rounded-xl border-2 text-left transition-all flex justify-between items-center
+                                                        ${quizState.feedback === null ? 'border-slate-100 hover:border-indigo-400' : 
+                                                        idx === quizQuestions[quizState.currentQuestion].correct ? 'border-emerald-500 bg-emerald-50' : 'border-slate-50'}`}
+                                                >
+                                                    <span className="font-bold">{option}</span>
+                                                    {quizState.feedback !== null && idx === quizQuestions[quizState.currentQuestion].correct && <Icon name="check" className="text-emerald-500" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-10 animate-in">
+                                        <div className="text-6xl font-black text-indigo-600 mb-4">{Math.round((quizState.score / quizQuestions.length) * 100)}%</div>
+                                        <p className="text-slate-500 mb-8 font-bold text-xl">Evaluación Finalizada</p>
+                                        <button onClick={() => setQuizState({ currentQuestion: 0, score: 0, showResults: false, feedback: null })} className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold">Reiniciar Test</button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
-                  ))}
                 </div>
-              </div>
-            ) : (
-              <div className="bg-white p-16 rounded-2xl border-2 border-dashed border-slate-200 text-center">
-                <p className="text-slate-400 font-medium">Selecciona una categoría técnica para ver los protocolos</p>
-              </div>
-            )}
+            );
+        };
 
-            {/* Ayuda para Moodle */}
-            <div className="mt-8 p-6 bg-slate-800 rounded-2xl text-white shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Code className="text-indigo-400" />
-                  <h3 className="font-bold">Guía de Integración en Moodle</h3>
-                </div>
-                <button 
-                  onClick={() => setShowEmbedInfo(!showEmbedInfo)}
-                  className="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded-full transition-colors"
-                >
-                  {showEmbedInfo ? 'Cerrar' : 'Ver Instrucciones'}
-                </button>
-              </div>
-              
-              {showEmbedInfo && (
-                <div className="space-y-4 text-sm text-slate-300 animate-in fade-in duration-300">
-                  <p>Para que la página no devuelva "No encontrada", sigue estos pasos:</p>
-                  <ol className="list-decimal ml-5 space-y-2">
-                    <li>Exporta este código como un archivo <code className="text-indigo-300">index.html</code>.</li>
-                    <li>Súbelo a un hosting (GitHub Pages es gratuito para docentes).</li>
-                    <li>En Moodle, crea una <strong>Etiqueta</strong> o <strong>Página</strong>.</li>
-                    <li>Clica en el icono "Código HTML" (&lt;&gt;) y pega el siguiente código:</li>
-                  </ol>
-                  <div className="bg-slate-900 p-3 rounded-lg flex items-center justify-between font-mono text-[10px] border border-slate-700">
-                    <code className="text-emerald-400 truncate mr-2">
-                      {`<iframe src="URL_DE_TU_ARCHIVO" width="100%" height="600px" style="border:none;"></iframe>`}
-                    </code>
-                    <button onClick={copyIframeCode} className="flex-shrink-0 hover:text-white transition-colors">
-                      <Copy size={16} />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Quiz Section */}
-        {activeTab === 'quiz' && (
-          <div className="bg-white p-6 md:p-10 rounded-3xl shadow-xl border border-slate-100 min-h-[500px] flex flex-col animate-in fade-in duration-500">
-            {!quizState.showResults ? (
-              <div className="flex-1">
-                <div className="flex justify-between items-center mb-8">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em]">Examen de Diagnóstico</span>
-                    <span className="text-sm font-bold text-slate-400">Pregunta {quizState.currentQuestion + 1} de {quizQuestions.length}</span>
-                  </div>
-                  <div className="h-3 w-40 bg-slate-100 rounded-full overflow-hidden border border-slate-50">
-                    <div 
-                      className="h-full bg-indigo-500 transition-all duration-700 ease-out" 
-                      style={{ width: `${((quizState.currentQuestion + 1) / quizQuestions.length) * 100}%` }}
-                    />
-                  </div>
-                </div>
-                
-                <div className="bg-indigo-50 p-6 rounded-2xl border-l-8 border-indigo-400 mb-8 shadow-inner">
-                   <h2 className="text-lg font-semibold text-indigo-900 leading-relaxed italic">
-                    "{quizQuestions[quizState.currentQuestion].scenario}"
-                  </h2>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3">
-                  {quizQuestions[quizState.currentQuestion].options.map((option, idx) => (
-                    <button
-                      key={idx}
-                      disabled={quizState.feedback !== null}
-                      onClick={() => handleAnswer(idx)}
-                      className={`w-full p-5 rounded-xl border-2 text-left transition-all flex items-center justify-between group
-                        ${quizState.feedback === null ? 'border-slate-100 hover:border-indigo-400 hover:bg-white hover:shadow-md' : 
-                          idx === quizQuestions[quizState.currentQuestion].correct ? 'border-emerald-500 bg-emerald-50' : 
-                          quizState.feedback === 'incorrect' && idx !== quizQuestions[quizState.currentQuestion].correct ? 'border-slate-50 opacity-40' : 'border-slate-100'}
-                      `}
-                    >
-                      <span className={`font-bold ${quizState.feedback === null ? 'text-slate-600 group-hover:text-indigo-700' : 'text-slate-800'}`}>{option}</span>
-                      {quizState.feedback !== null && idx === quizQuestions[quizState.currentQuestion].correct && <CheckCircle2 className="text-emerald-500" />}
-                    </button>
-                  ))}
-                </div>
-
-                {quizState.feedback === 'incorrect' && (
-                  <div className="mt-6 p-4 bg-red-50 text-red-800 rounded-xl flex items-center gap-3 animate-in slide-in-from-top-2 border border-red-100">
-                    <XCircle className="flex-shrink-0" size={20} />
-                    <p className="text-sm font-bold">Diagnóstico erróneo. Analiza de nuevo los síntomas de alerta.</p>
-                  </div>
-                )}
-                
-                {quizState.feedback === 'correct' && (
-                  <div className="mt-6 p-4 bg-emerald-50 text-emerald-800 rounded-xl flex items-center gap-3 animate-in slide-in-from-top-2 border border-emerald-100">
-                    <CheckCircle2 className="flex-shrink-0 text-emerald-600" size={20} />
-                    <div>
-                      <p className="text-sm font-black uppercase tracking-tighter">¡Correcto!</p>
-                      <p className="text-xs font-medium">{quizQuestions[quizState.currentQuestion].explanation}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-10 flex flex-col items-center flex-1 justify-center animate-in zoom-in-95 duration-300">
-                <div className="bg-indigo-100 p-8 rounded-full mb-6 shadow-inner">
-                  <Activity className="w-16 h-16 text-indigo-600" />
-                </div>
-                <h2 className="text-4xl font-black text-slate-800 mb-2">Resultados</h2>
-                <p className="text-slate-500 mb-10 text-lg">Competencia técnica demostrada:</p>
-                
-                <div className="relative mb-12">
-                   <div className="text-8xl font-black text-indigo-600">
-                    {Math.round((quizState.score / quizQuestions.length) * 100)}%
-                  </div>
-                  <div className="text-xs font-black text-indigo-400 uppercase tracking-widest mt-2">Puntuación Final</div>
-                </div>
-
-                <div className="flex gap-4">
-                  <button 
-                    onClick={resetQuiz}
-                    className="flex items-center gap-2 bg-slate-900 text-white px-10 py-4 rounded-2xl hover:bg-slate-800 transition-all shadow-xl active:scale-95 font-bold"
-                  >
-                    <RotateCcw size={18} /> Reintentar Evaluación
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* Footer info */}
-        <footer className="mt-16 pt-8 border-t border-slate-200 text-center">
-          <p className="text-slate-400 text-[9px] font-black uppercase tracking-[0.3em]">Módulo de Primeros Auxilios • Grado Medio • Sistema de Evaluación 2024</p>
-        </footer>
-      </div>
-    </div>
-  );
-};
-
-export default App;
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
